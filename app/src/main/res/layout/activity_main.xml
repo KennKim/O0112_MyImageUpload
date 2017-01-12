@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
+    android:orientation="vertical"
     android:layout_height="match_parent"
-    android:background="@color/colorAccent"
-    android:paddingTop="@dimen/activity_vertical_margin">
+    android:background="@color/colorAccent">
 
     <TextView
         android:id="@+id/tvHeading"
@@ -14,25 +14,49 @@
         android:text="Touch the icon below to upload file to server"
         android:textColor="#fff"
         android:textSize="18sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:padding="10dp" />
 
-    <ImageView
-        android:id="@+id/ivAttachment"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
-        android:src="@drawable/ic_android_white_24dp" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ImageView
+            android:id="@+id/iv1"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_android_white_24dp"
+            android:layout_weight="1" />
+        <ImageView
+            android:id="@+id/iv2"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_android_white_24dp"
+            android:layout_weight="1" />
+        <ImageView
+            android:id="@+id/iv3"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_android_white_24dp"
+            android:layout_weight="1" />
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tv_file_name"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/ivAttachment"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_below="@+id/iv1"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="10dp"
         android:gravity="center"
-        android:textColor="#fff" />
+        android:textColor="#fff"
+        android:padding="10dp" />
 
     <LinearLayout
         android:orientation="horizontal"
@@ -68,4 +92,4 @@
             android:layout_weight="1" />
     </LinearLayout>
 
-</RelativeLayout>
+</LinearLayout>

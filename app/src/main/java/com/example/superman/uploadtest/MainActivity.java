@@ -14,6 +14,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,18 +24,23 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final int PICK_FILE_REQUEST = 1;
     private static final int TAKE_IMAGE_REQUEST = 2;
     private static final String TAG = MainActivity.class.getSimpleName();
-    private String selectedFilePath;
-    private Uri cameraTempUri;
+    private ArrayList<String> selectedFilePath = new ArrayList<>();
+    private int imgNo = 0;
+    private ArrayList<String> uploadedFileURL = new ArrayList<>();
+    private Uri mImageCaptureUri;
     private static final String SERVER_URL = "http://jip.dothome.co.kr/myhome/test/";
     private static final String UPLOAD_PHP_URL = SERVER_URL + "/upload.php";
     private static final String UPLOAD_DIR_URL = SERVER_URL + "/uploads";
-    ImageView ivAttachment;
+    ImageView iv1;
+    ImageView iv2;
+    ImageView iv3;
     Button bUpload;
     Button bCamera;
     TextView tvFileName;
@@ -44,19 +51,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        ivAttachment = (ImageView) findViewById(R.id.ivAttachment);
+        iv1 = (ImageView) findViewById(R.id.iv1);
+        iv1.setOnClickListener(this);
+        iv2 = (ImageView) findViewById(R.id.iv2);
+        iv2.setOnClickListener(this);
+        iv3 = (ImageView) findViewById(R.id.iv3);
+        iv3.setOnClickListener(this);
         bUpload = (Button) findViewById(R.id.b_upload);
         bCamera = (Button) findViewById(R.id.camera);
         tvFileName = (TextView) findViewById(R.id.tv_file_name);
-        ivAttachment.setOnClickListener(this);
         bUpload.setOnClickListener(this);
         bCamera.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
-        if (v == ivAttachment) {
-
+        if (v == iv1 || v == iv2 || v == iv3) {
             //on attachment icon click
             openGallery();
         }
@@ -72,7 +82,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public void run() {
                         //creating new thread to handle Http Operations
-                        uploadFile(selectedFilePath);
+                        if (selectedFilePath.size() == 0) {
+                            Toast.makeText(MainActivity.this, "selectedFilePath == 0", Toast.LENGTH_SHORT).show();
+                        } else {
+                            for (String s : selectedFilePath) {
+                                uploadFile(s);
+                            }
+//                selectedFilePath.clear();
+//                Glide.with(this).load(R.drawable.ic_android_black_24dp).into(iv1);
+//                Glide.with(this).load(R.drawable.ic_android_black_24dp).into(iv2);
+//                Glide.with(this).load(R.drawable.ic_android_black_24dp).into(iv3);
+                        }
                     }
                 }).start();
             } else {
@@ -106,26 +126,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         startActivityForResult(intent, TAKE_IMAGE_REQUEST);
-//
-//        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//
-//        // 임시로 사용할 파일의 경로를 생성
-//        String url = "tmp_" + String.valueOf(System.currentTimeMillis()) + ".jpg";
-//        cameraTempUri = Uri.fromFile(new File(Environment.getExternalStorageDirectory(), url));
-//
-//        intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, cameraTempUri);
-//
-//        selectedFilePath = FilePath.getPath(this, cameraTempUri);
-//        Log.i(TAG, "Selected File Path:" + selectedFilePath);
-//
-//        if (selectedFilePath != null && !selectedFilePath.equals("")) {
-//            tvFileName.setText(selectedFilePath);
-//        } else {
-//            Toast.makeText(this, "Cannot upload file to server", Toast.LENGTH_SHORT).show();
-//        }
-//        startActivityForResult(intent,TAKE_IMAGE_REQUEST);
 
+        /*Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (intent.resolveActivity(getPackageManager()) != null) {
+            File file = null;
+            try {
+                file = createImageFile(); // 사진찍은 후 저장할 임시 파일
+            } catch (IOException ex) {
+                Toast.makeText(getApplicationContext(), "createImageFile Failed", Toast.LENGTH_LONG).show();
+            }
+
+            if (file != null) {
+                mImageCaptureUri = Uri.fromFile(file); // 임시 파일의 위치,경로 가져옴
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, mImageCaptureUri); // 임시 파일 위치에 저장
+                startActivityForResult(intent, TAKE_IMAGE_REQUEST);
+            }
+        }*/
     }
+
+    /*private File createImageFile() throws IOException {
+
+        File fileDir = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + "/aaPhoto");
+        if (!fileDir.exists()) // SmartWheel 디렉터리에 폴더가 없다면 (새로 이미지를 저장할 경우에 속한다.)
+            fileDir.mkdir();
+
+        String imgFilePath = Environment.getExternalStorageDirectory().getAbsolutePath() + "/aaPhoto/" + System.currentTimeMillis() + ".jpg";
+        File file = new File(imgFilePath);
+        return file;
+    }*/
 
 
     @Override
@@ -137,18 +165,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             if (requestCode == PICK_FILE_REQUEST) {
                 if (data == null) {
                     Log.d(TAG, "--NULL--PICK_FILE_REQUEST" + selectedFilePath);
-                }
-                Log.d(TAG, "--NOT NULL--PICK_FILE_REQUEST" + selectedFilePath);
-
-
-                Uri selectedFileUri = data.getData();
-                selectedFilePath = FilePath.getPath(this, selectedFileUri);
-                Log.i(TAG, "Selected File Path:" + selectedFilePath);
-
-                if (selectedFilePath != null && !selectedFilePath.equals("")) {
-                    tvFileName.setText(selectedFilePath);
                 } else {
-                    Toast.makeText(this, "Cannot upload file to server", Toast.LENGTH_SHORT).show();
+                    imgNo = selectedFilePath.size() != 0 ? +1 : 0;
+                    Uri selectedFileUri = data.getData();
+                    selectedFilePath.add(imgNo, FilePath.getPath(this, selectedFileUri));
+                    Log.i(TAG, "Selected File Path:" + selectedFilePath.get(imgNo));
+
+
+                    tvFileName.setText(selectedFilePath.get(imgNo));
+                    switch (imgNo) {
+                        case 0:
+                            Glide.with(this)
+                                    .load(new File(selectedFileUri.getPath())) // Uri of the picture
+                                    .into(iv1);
+                            break;
+                        case 1:
+                            Glide.with(this)
+                                    .load(new File(selectedFileUri.getPath())) // Uri of the picture
+                                    .into(iv2);
+                            break;
+                        case 2:
+                            Glide.with(this)
+                                    .load(new File(selectedFileUri.getPath())) // Uri of the picture
+                                    .into(iv3);
+                            break;
+                    }
+
+
                 }
             } else if (requestCode == TAKE_IMAGE_REQUEST) {
                 if (data == null) {
@@ -156,19 +199,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 Log.d(TAG, "--NOT NULL--TAKE_IMAGE_REQUEST" + selectedFilePath);
 
-//
-//                Uri selectedFileUri = data.getData();
-//                selectedFilePath = FilePath.getPath(this, selectedFileUri);
-//                Log.i(TAG, "Selected File Path:" + selectedFilePath);
 
-                if (selectedFilePath != null && !selectedFilePath.equals("")) {
-                    tvFileName.setText(selectedFilePath);
-                } else {
-                    Toast.makeText(this, "Cannot upload file to server", Toast.LENGTH_SHORT).show();
-                }
             }
         }
     }
+
+    /*private Uri getLastCaptureImageUri(){
+        Uri uri =null;
+        String[] IMAGE_PROJECTION = {
+                MediaStore.Images.ImageColumns.DATA,
+                MediaStore.Images.ImageColumns._ID,
+        };
+
+        try {
+            Cursor cursorImages = getContentResolver().query(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                    IMAGE_PROJECTION, null, null,null);
+            if (cursorImages != null && cursorImages.moveToLast()) {
+                uri = Uri.parse(cursorImages.getString(0)); //경로
+                int id = cursorImages.getInt(1); //아이디
+                cursorImages.close(); // 커서 사용이 끝나면 꼭 닫아준다.
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return uri;
+    }*/
 
     //android upload file to server
     public int uploadFile(final String selectedFilePath) {
@@ -184,7 +240,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         int bytesRead, bytesAvailable, bufferSize;
         byte[] buffer;
-        int maxBufferSize = 1 * 1024 * 1024;
+        int maxBufferSize = 1024 * 1024;
         File selectedFile = new File(selectedFilePath);
 
 
